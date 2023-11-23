@@ -1,20 +1,20 @@
 package ru.practicum.shareit.item.mem;
 
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ItemRepository {
-    List<ItemDto> findItemByUserId(Long userId);
+    List<Item> findItemByUserId(Long userId);
 
-    Optional<ItemDto> getById(Long itemId);
+    Optional<Item> getById(Long itemId);
 
-    ItemDto add(ItemDto itemDto);
+    Item add(Item item);
 
-    ItemDto update(Long userId, ItemDto itemDto);
+    Item update(Long userId, Item item);
 
     void deleteByUserIdAndItemId(Long userId, Long itemId);
 
-    List<ItemDto> search(String searchText);
+    List<Item> search(String searchText);
 }

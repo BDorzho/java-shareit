@@ -1,21 +1,19 @@
 package ru.practicum.shareit.user.mem;
 
-import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository {
-    List<UserDto> getAll();
+    List<User> getAll();
 
-    UserDto create(UserDto userDto);
+    User create(User user);
 
-    UserDto update(UserDto userDto);
+    User update(User user);
 
     void deleteById(Long userId);
 
-    Optional<UserDto> findById(Long userId);
-
-    Optional<UserDto> findByEmail(String email);
+    Optional<User> findById(Long userId);
 
 }

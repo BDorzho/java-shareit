@@ -2,10 +2,12 @@ package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
-
+import ru.practicum.shareit.validation.valid.OnCreate;
+import ru.practicum.shareit.validation.valid.OnUpdate;
 
 import java.util.List;
 
@@ -35,7 +37,7 @@ public class ItemController {
 
     @PostMapping
     public ItemDto add(@RequestHeader("X-Sharer-User-Id") long userId,
-                       @RequestBody ItemDto itemDto) {
+                       @Validated(OnCreate.class) @RequestBody ItemDto itemDto) {
         log.info("Пользователь с id: {}, создает вещь", userId);
         ItemDto createItem = itemService.add(userId, itemDto);
         log.info("Вещь создана");
@@ -53,7 +55,7 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public ItemDto update(@RequestHeader("X-Sharer-User-Id") long userId,
                           @PathVariable long itemId,
-                          @RequestBody ItemDto itemDto) {
+                          @Validated(OnUpdate.class) @RequestBody ItemDto itemDto) {
         log.info("Редактирование свойств вещи у пользователя с id: {}", userId);
         ItemDto updateItem = itemService.update(itemId, userId, itemDto);
         log.info("Вещь с идентификатором: {} отредактирована", itemId);

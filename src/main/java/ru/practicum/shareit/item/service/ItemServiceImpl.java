@@ -3,9 +3,10 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.mem.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.mem.UserRepository;
-import ru.practicum.shareit.validation.ValidationService;
 import ru.practicum.shareit.validation.exception.NotFoundException;
 
 import java.util.Collections;
@@ -19,30 +20,27 @@ public class ItemServiceImpl implements ItemService {
 
     private final UserRepository userRepository;
 
-    private final ValidationService validationService;
-
     @Override
     public List<ItemDto> getItems(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        return itemRepository.findItemByUserId(userId);
+        return ItemMapper.toItemDtoList(itemRepository.findItemByUserId(userId));
     }
 
     @Override
     public ItemDto getById(Long itemId) {
-        return itemRepository.getById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
+        return ItemMapper.toItemDto(itemRepository.getById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь не найдена")));
     }
 
     @Override
     public ItemDto add(Long userId, ItemDto itemDto) {
-        validationService.validateItem(itemDto);
-
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         itemDto.setOwner(userId);
-        return itemRepository.add(itemDto);
+        Item item = ItemMapper.toItem(itemDto);
+        return ItemMapper.toItemDto(itemRepository.add(item));
     }
 
     @Override
@@ -54,9 +52,9 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto update(Long itemId, Long userId, ItemDto itemDto) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        ItemDto updateItem = itemRepository.getById(itemId)
+        Item updateItem = itemRepository.getById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-        if (!updateItem.getOwner().equals(userId)) {
+        if (!updateItem.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Вещь может редактировать только ёё владелец");
         }
         if (itemDto.getName() != null) {
@@ -68,7 +66,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             updateItem.setAvailable(itemDto.getAvailable());
         }
-        return itemRepository.update(userId, updateItem);
+        return ItemMapper.toItemDto(itemRepository.update(userId, updateItem));
     }
 
     @Override
@@ -76,6 +74,6 @@ public class ItemServiceImpl implements ItemService {
         if (searchText == null || searchText.isEmpty()) {
             return Collections.emptyList();
         }
-        return itemRepository.search(searchText);
+        return ItemMapper.toItemDtoList(itemRepository.search(searchText));
     }
 }
