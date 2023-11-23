@@ -13,7 +13,6 @@ import ru.practicum.shareit.validation.exception.NotFoundException;
 import ru.practicum.shareit.validation.exception.ValidationException;
 
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
