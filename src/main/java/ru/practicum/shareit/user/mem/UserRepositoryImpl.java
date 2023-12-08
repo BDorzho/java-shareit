@@ -33,7 +33,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User update(User user) {
+    public void update(User user) {
         User updateUser = findById(user.getId())
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
@@ -50,8 +50,6 @@ public class UserRepositoryImpl implements UserRepository {
             updateUser.setName(user.getName());
         }
         users.put(updateUser.getId(), updateUser);
-
-        return updateUser;
     }
 
     @Override

@@ -38,7 +38,9 @@ public class UserServiceImpl implements UserService {
     public UserDto update(Long userId, UserDto userDto) {
         userDto.setId(userId);
         User updateUser = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userRepository.update(updateUser));
+        userRepository.update(updateUser);
+        return UserMapper.toUserDto(userRepository.findById(updateUser.getId())
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден")));
     }
 
     @Override

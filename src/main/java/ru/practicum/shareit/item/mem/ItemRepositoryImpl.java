@@ -32,17 +32,15 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public Item update(Long userId, Item item) {
+    public void update(Long userId, Item item) {
         Set<Item> userItems = items.get(userId);
 
         if (userItems != null) {
             if (userItems.removeIf(currentItem -> currentItem.getId().equals(item.getId()))) {
                 userItems.add(item);
                 allItems.put(item.getId(), item);
-                return item;
             }
         }
-        return null;
     }
 
 

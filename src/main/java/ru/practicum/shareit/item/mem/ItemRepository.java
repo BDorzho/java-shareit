@@ -12,7 +12,7 @@ public interface ItemRepository {
 
     Item add(Item item);
 
-    Item update(Long userId, Item item);
+    void update(Long userId, Item item);
 
     void deleteByUserIdAndItemId(Long userId, Long itemId);
 
