@@ -20,4 +20,5 @@ public class UserDto {
     @NotBlank(message = "Email пользователя не может быть пустым", groups = OnCreate.class)
     @Email(message = "Некорректный формат email", groups = {OnCreate.class, OnUpdate.class})
     private String email;
+
 }

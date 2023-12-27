@@ -4,27 +4,27 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.item.dto.ItemBookingDto;
+import ru.practicum.shareit.user.dto.UserBookingDto;
 
-
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookingDto {
-
+public class BookingResponseDto {
     private Long id;
 
-    @NotNull(message = "Время начала не должно быть пустым")
     private LocalDateTime start;
 
-    @NotNull(message = "Время окончания не должно быть пустым")
     private LocalDateTime end;
 
     private BookingStatus status;
 
-    private Long itemId;
+    private UserBookingDto booker;
+
+    private ItemBookingDto item;
 
 
 }
+

@@ -8,9 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.validation.exception.ConflictException;
-import ru.practicum.shareit.validation.exception.NotFoundException;
-import ru.practicum.shareit.validation.exception.ValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import ru.practicum.shareit.validation.exception.*;
 
 
 import java.io.PrintWriter;
@@ -44,6 +43,20 @@ public class ErrorHandler {
     public ErrorResponse handleConflictException(final ConflictException e) {
         log.error("ConflictException: {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleAccessDeniedException(final AccessDeniedException e) {
+        log.error("AccessDeniedException: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleArgumentException(final MethodArgumentTypeMismatchException e) {
+        log.error("ArgumentException: {}", "UNSUPPORTED_STATUS");
+        return new ErrorResponse("Unknown state: UNSUPPORTED_STATUS");
     }
 
 
