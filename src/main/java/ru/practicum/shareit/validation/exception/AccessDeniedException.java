@@ -1,8 +1,8 @@
 package ru.practicum.shareit.validation.exception;
 
-public class AccessDeniedException extends RuntimeException{
+public class AccessDeniedException extends RuntimeException {
 
-    public AccessDeniedException(String message){
+    public AccessDeniedException(String message) {
         super(message);
     }
 }
