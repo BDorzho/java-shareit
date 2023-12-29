@@ -1,19 +1,20 @@
 package ru.practicum.shareit.validation.error;
 
+
 import lombok.Getter;
 import lombok.Setter;
 
+
 @Getter
+@Setter
 public class ErrorResponse {
 
-    private final String error;
+    private String error;
 
-    @Setter
     private String stackTrace;
 
     public ErrorResponse(String error) {
         this.error = error;
     }
-
 }
 

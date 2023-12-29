@@ -16,21 +16,22 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
+    private final UserMapper mapper;
 
     @Override
     public List<UserDto> getAll() {
-        return UserMapper.toUserDtoList(userRepository.findAll());
+        return mapper.toUserDtoList(userRepository.findAll());
     }
 
     @Override
     public UserDto create(UserDto userDto) {
-        User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userRepository.save(user));
+        User user = mapper.toUser(userDto);
+        return mapper.toUserDto(userRepository.save(user));
     }
 
     @Override
     public UserDto getById(Long userId) {
-        return UserMapper.toUserDto(userRepository.findById(userId)
+        return mapper.toUserDto(userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден")));
     }
 
@@ -44,8 +45,8 @@ public class UserServiceImpl implements UserService {
         if (userDto.getEmail() != null) {
             updateUser.setEmail(userDto.getEmail());
         }
-        userRepository.update(updateUser.getId(),updateUser.getName(),updateUser.getEmail());
-        return UserMapper.toUserDto(updateUser);
+        userRepository.save(updateUser);
+        return mapper.toUserDto(updateUser);
     }
 
     @Override

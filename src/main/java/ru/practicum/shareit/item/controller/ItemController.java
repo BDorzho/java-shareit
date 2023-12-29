@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemDetailDto;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInfoDto;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.validation.valid.OnCreate;
 import ru.practicum.shareit.validation.valid.OnUpdate;
@@ -22,27 +22,27 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<ItemDetailDto> getItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemInfoDto> getItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получение списка вещей");
-        List<ItemDetailDto> items = itemService.getItems(userId);
+        List<ItemInfoDto> items = itemService.getItems(userId);
         log.info("Получено {} вещей ", items.size());
         return items;
     }
 
     @GetMapping("/{itemId}")
-    public ItemDetailDto get(@RequestHeader("X-Sharer-User-Id") Long userId,
-                             @PathVariable Long itemId) {
+    public ItemInfoDto get(@RequestHeader("X-Sharer-User-Id") Long userId,
+                           @PathVariable Long itemId) {
         log.info("Получение вещи с идентификатором: {}", itemId);
-        ItemDetailDto itemDto = itemService.getById(itemId, userId);
+        ItemInfoDto itemDto = itemService.getById(itemId, userId);
         log.info("Вещь с идентификатором {} получен", itemId);
         return itemDto;
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Long userId,
-                       @Validated(OnCreate.class) @RequestBody ItemDto itemDto) {
+    public ItemCreateDto add(@RequestHeader("X-Sharer-User-Id") Long userId,
+                             @Validated(OnCreate.class) @RequestBody ItemCreateDto itemCreateDto) {
         log.info("Пользователь с id: {}, создает вещь", userId);
-        ItemDto createItem = itemService.add(userId, itemDto);
+        ItemCreateDto createItem = itemService.add(userId, itemCreateDto);
         log.info("Вещь создана");
         return createItem;
     }
@@ -56,19 +56,20 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
-                          @PathVariable Long itemId,
-                          @Validated(OnUpdate.class) @RequestBody ItemDto itemDto) {
+    public ItemCreateDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                @PathVariable Long itemId,
+                                @Validated(OnUpdate.class) @RequestBody ItemCreateDto itemCreateDto) {
         log.info("Редактирование свойств вещи у пользователя с id: {}", userId);
-        ItemDto updateItem = itemService.update(itemId, userId, itemDto);
+        itemCreateDto.setId(itemId);
+        ItemCreateDto updateItem = itemService.update(userId, itemCreateDto);
         log.info("Вещь с идентификатором: {} отредактирована", itemId);
         return updateItem;
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestParam("text") String searchText) {
+    public List<ItemCreateDto> search(@RequestParam("text") String searchText) {
         log.info("Поиск вещей по тексту: {}", searchText);
-        List<ItemDto> items = itemService.search(searchText);
+        List<ItemCreateDto> items = itemService.search(searchText);
         log.info("Найдено {} вещей по тексту {}", items.size(), searchText);
         return items;
     }

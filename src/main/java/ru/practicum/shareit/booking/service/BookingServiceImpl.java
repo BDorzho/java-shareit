@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dao.BookingRepository;
-import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -13,8 +13,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.validation.BookingValidator;
-import ru.practicum.shareit.validation.exception.AccessDeniedException;
 import ru.practicum.shareit.validation.exception.NotFoundException;
 import ru.practicum.shareit.validation.exception.ValidationException;
 
@@ -31,14 +29,15 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
 
     private final ItemRepository itemRepository;
+    private final BookingMapper mapper;
 
     @Override
-    public BookingResponseDto add(Long bookerId, BookingDto bookingDto) {
+    public BookingResponseDto add(Long bookerId, BookingCreateDto bookingCreateDto) {
 
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        Item item = itemRepository.findById(bookingDto.getItemId())
+        Item item = itemRepository.findById(bookingCreateDto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
         if (item.getOwner().getId().equals(bookerId)) {
@@ -49,32 +48,27 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException("Выбранный предмет недоступен для бронирования");
         }
 
-        BookingValidator.validateBooking(bookingDto.getStart(), bookingDto.getEnd());
-
-        if (bookingRepository.existsByItemIdAndEndAfterAndStartBefore(item.getId(), bookingDto.getStart(), bookingDto.getEnd())) {
+        if (bookingRepository.existsByItemIdAndEndAfterAndStartBefore(item.getId(), bookingCreateDto.getStart(), bookingCreateDto.getEnd())) {
             throw new NotFoundException("Это время уже занято для выбранной вещи");
         }
 
-        Booking booking = BookingMapper.toBooking(bookingDto);
-        booking.setBooker(booker);
-        booking.setItem(item);
-        booking.setStatus(BookingStatus.WAITING);
+        Booking booking = mapper.toModel(bookingCreateDto, booker, item);
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        return BookingMapper.toBookingResponseDto(savedBooking);
+        return mapper.toDto(savedBooking);
     }
 
 
     @Override
     public BookingResponseDto update(Long userId, Long bookingId, boolean approved) {
 
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findBookingById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         Item item = booking.getItem();
         if (!item.getOwner().getId().equals(userId)) {
-            throw new AccessDeniedException("Изменение статуса бронирования разрешено только владельцу");
+            throw new NotFoundException("Изменение статуса бронирования разрешено только владельцу");
         }
         if (approved && booking.getStatus() != BookingStatus.WAITING) {
             throw new ValidationException("Невозможно подтвердить бронирование из-за неверного статуса");
@@ -82,22 +76,20 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         Booking updatedBooking = bookingRepository.save(booking);
-        return BookingMapper.toBookingResponseDto(updatedBooking);
+        return mapper.toDto(updatedBooking);
     }
 
     @Override
     public BookingResponseDto get(Long userId, Long bookingId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findBookingById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         Item item = booking.getItem();
         if (booking.getBooker().getId().equals(userId) || item.getOwner().getId().equals(userId)) {
-            return BookingMapper.toBookingResponseDto(booking);
+            return mapper.toDto(booking);
         } else {
-            throw new AccessDeniedException("Пользователь не автор бронирования");
+            throw new NotFoundException("Пользователь не автор бронирования");
         }
     }
 
@@ -114,7 +106,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return bookings.stream()
-                .map(BookingMapper::toBookingResponseDto)
+                .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -130,7 +122,7 @@ public class BookingServiceImpl implements BookingService {
             bookings = getBookingsBasedOnStateForOwner(ownerId, state, now);
         }
         return bookings.stream()
-                .map(BookingMapper::toBookingResponseDto)
+                .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
 

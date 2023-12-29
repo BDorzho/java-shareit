@@ -1,38 +1,50 @@
 package ru.practicum.shareit.booking.mapper;
 
-import org.modelmapper.ModelMapper;
-import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingItemDto;
+import org.springframework.stereotype.Component;
+import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.item.dto.ItemBookingDto;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.dto.UserBookingDto;
+import ru.practicum.shareit.user.model.User;
 
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class BookingMapper {
-    private static final ModelMapper modelMapper = new ModelMapper();
 
-    public static BookingDto toBookingDto(Booking booking) {
-        return modelMapper.map(booking, BookingDto.class);
+
+    public Booking toModel(BookingCreateDto bookingCreateDto, User booker, Item item) {
+        return new Booking(bookingCreateDto.getId(),
+                bookingCreateDto.getStart(),
+                bookingCreateDto.getEnd(),
+                item,
+                booker,
+                BookingStatus.WAITING);
     }
 
-    public static Booking toBooking(BookingDto bookingDto) {
-        return modelMapper.map(bookingDto, Booking.class);
-    }
-
-    public static List<BookingDto> toBookingDtoList(List<Booking> bookingList) {
+    public List<BookingCreateDto> toListDto(List<Booking> bookingList) {
         return bookingList.stream()
-                .map(booking -> modelMapper.map(booking, BookingDto.class))
+                .map(booking -> new BookingCreateDto(booking.getId(),
+                        booking.getStart(),
+                        booking.getEnd(),
+                        booking.getStatus(),
+                        booking.getItem().getId()))
                 .collect(Collectors.toList());
     }
 
-    public static BookingResponseDto toBookingResponseDto(Booking booking) {
-        return modelMapper.map(booking, BookingResponseDto.class);
+    public BookingResponseDto toDto(Booking booking) {
+        return new BookingResponseDto(booking.getId(),
+                booking.getStart(),
+                booking.getEnd(),
+                booking.getStatus(),
+                new UserBookingDto(booking.getBooker().getId()),
+                new ItemBookingDto(booking.getItem().getId(), booking.getItem().getName()));
     }
 
-    public static BookingItemDto toBookingItemDto(Booking booking) {
-        return modelMapper.map(booking, BookingItemDto.class);
-    }
 }
 
