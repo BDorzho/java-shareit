@@ -8,9 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.validation.exception.ConflictException;
-import ru.practicum.shareit.validation.exception.NotFoundException;
-import ru.practicum.shareit.validation.exception.ValidationException;
+import ru.practicum.shareit.validation.exception.*;
 
 
 import java.io.PrintWriter;
@@ -40,12 +38,11 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleConflictException(final ConflictException e) {
-        log.error("ConflictException: {}", e.getMessage());
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleIllegalArgumentException(final IllegalArgumentException e) {
+        log.error("IllegalArgumentException: {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
-
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
