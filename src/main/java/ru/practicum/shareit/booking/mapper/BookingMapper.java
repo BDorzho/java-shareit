@@ -3,11 +3,11 @@ package ru.practicum.shareit.booking.mapper;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
-import ru.practicum.shareit.booking.dto.BookingResponseDto;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.item.dto.ItemBookingDto;
+import ru.practicum.shareit.item.dto.ItemBookingInfoDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.dto.UserBookingDto;
+import ru.practicum.shareit.user.dto.BookerDto;
 import ru.practicum.shareit.user.model.User;
 
 
@@ -32,18 +32,17 @@ public class BookingMapper {
                 .map(booking -> new BookingCreateDto(booking.getId(),
                         booking.getStart(),
                         booking.getEnd(),
-                        booking.getStatus(),
                         booking.getItem().getId()))
                 .collect(Collectors.toList());
     }
 
-    public BookingResponseDto toDto(Booking booking) {
-        return new BookingResponseDto(booking.getId(),
+    public BookingDto toDto(Booking booking) {
+        return new BookingDto(booking.getId(),
                 booking.getStart(),
                 booking.getEnd(),
                 booking.getStatus(),
-                new UserBookingDto(booking.getBooker().getId()),
-                new ItemBookingDto(booking.getItem().getId(), booking.getItem().getName()));
+                new BookerDto(booking.getBooker().getId()),
+                new ItemBookingInfoDto(booking.getItem().getId(), booking.getItem().getName()));
     }
 
 }

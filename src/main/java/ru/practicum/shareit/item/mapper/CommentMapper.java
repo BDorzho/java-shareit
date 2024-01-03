@@ -12,14 +12,14 @@ import java.util.stream.Collectors;
 
 @Component
 public class CommentMapper {
-    public static CommentDto toCommentDto(Comment comment) {
+    public static CommentDto toDto(Comment comment) {
         return new CommentDto(comment.getId(),
                 comment.getText(),
                 comment.getAuthor().getName(),
                 comment.getCreated());
     }
 
-    public static Comment toComment(CommentDto commentDto, Item item, User author) {
+    public static Comment toModel(CommentDto commentDto, Item item, User author) {
         return new Comment(commentDto.getId(),
                 item,
                 author,
@@ -27,9 +27,9 @@ public class CommentMapper {
                 LocalDateTime.now());
     }
 
-    public static List<CommentDto> toCommentDtoList(List<Comment> commentList) {
+    public static List<CommentDto> toListDto(List<Comment> commentList) {
         return commentList.stream()
-                .map(CommentMapper::toCommentDto)
+                .map(CommentMapper::toDto)
                 .collect(Collectors.toList());
     }
 }

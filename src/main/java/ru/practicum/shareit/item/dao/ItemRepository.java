@@ -16,8 +16,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM Item i WHERE i.owner.id = :userId AND i.id = :itemId")
-    void deleteByUserIdAndItemId(@Param("userId") Long userId, @Param("itemId") Long itemId);
+    void deleteByIdAndOwnerId(Long itemId, Long ownerId);
 
     @Query("SELECT i FROM Item i " +
             "WHERE (UPPER(i.name) LIKE UPPER(CONCAT('%', :searchText, '%')) " +

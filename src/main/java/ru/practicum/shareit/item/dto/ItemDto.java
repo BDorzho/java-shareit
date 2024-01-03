@@ -12,7 +12,7 @@ import javax.validation.constraints.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemCreateDto {
+public class ItemDto {
 
     private Long id;
 
@@ -29,5 +29,8 @@ public class ItemCreateDto {
 
     private Long owner;
 
-
+    public ItemDto(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

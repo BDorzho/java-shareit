@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
-import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.validation.valid.OnCreate;
 import ru.practicum.shareit.validation.valid.OnUpdate;
@@ -39,10 +39,10 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemCreateDto add(@RequestHeader("X-Sharer-User-Id") Long userId,
-                             @Validated(OnCreate.class) @RequestBody ItemCreateDto itemCreateDto) {
+    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Long userId,
+                       @Validated(OnCreate.class) @RequestBody ItemDto itemDto) {
         log.info("Пользователь с id: {}, создает вещь", userId);
-        ItemCreateDto createItem = itemService.add(userId, itemCreateDto);
+        ItemDto createItem = itemService.add(userId, itemDto);
         log.info("Вещь создана");
         return createItem;
     }
@@ -56,20 +56,20 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemCreateDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                @PathVariable Long itemId,
-                                @Validated(OnUpdate.class) @RequestBody ItemCreateDto itemCreateDto) {
+    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
+                          @PathVariable Long itemId,
+                          @Validated(OnUpdate.class) @RequestBody ItemDto itemDto) {
         log.info("Редактирование свойств вещи у пользователя с id: {}", userId);
-        itemCreateDto.setId(itemId);
-        ItemCreateDto updateItem = itemService.update(userId, itemCreateDto);
+        itemDto.setId(itemId);
+        ItemDto updateItem = itemService.update(userId, itemDto);
         log.info("Вещь с идентификатором: {} отредактирована", itemId);
         return updateItem;
     }
 
     @GetMapping("/search")
-    public List<ItemCreateDto> search(@RequestParam("text") String searchText) {
+    public List<ItemDto> search(@RequestParam("text") String searchText) {
         log.info("Поиск вещей по тексту: {}", searchText);
-        List<ItemCreateDto> items = itemService.search(searchText);
+        List<ItemDto> items = itemService.search(searchText);
         log.info("Найдено {} вещей по тексту {}", items.size(), searchText);
         return items;
     }

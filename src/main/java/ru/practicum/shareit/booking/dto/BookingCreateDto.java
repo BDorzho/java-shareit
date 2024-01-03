@@ -3,7 +3,6 @@ package ru.practicum.shareit.booking.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.booking.BookingStatus;
 
 
 import javax.validation.constraints.AssertTrue;
@@ -31,8 +30,7 @@ public class BookingCreateDto {
         return start == null || end == null || end.isAfter(start);
     }
 
-    private BookingStatus status;
-
+    @NotNull
     private Long itemId;
 
 

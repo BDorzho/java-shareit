@@ -6,8 +6,8 @@ import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.dao.CommentRepository;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
-import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
@@ -47,8 +47,8 @@ public class ItemServiceImpl implements ItemService {
         List<Item> items = itemRepository.findItemsByOwnerId(userId);
 
         List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
-        List<Booking> bookingList = bookingRepository.findBookingsForItems(itemIds);
-        List<Comment> commentList = commentRepository.findCommentsForItems(itemIds);
+        List<Booking> bookingList = bookingRepository.findByItems(itemIds);
+        List<Comment> commentList = commentRepository.findByItems(itemIds);
 
         Map<Long, List<Booking>> bookingsMap = bookingList.stream()
                 .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
@@ -72,45 +72,45 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
         List<Comment> comments = commentRepository.findByItemId(itemId);
-        List<Booking> bookings = bookingRepository.findBookingByItemId(itemId);
+        List<Booking> bookings = bookingRepository.findByItemId(itemId);
 
         return getItemDetails(item, comments, bookings, userId);
     }
 
     @Transactional
     @Override
-    public ItemCreateDto add(Long userId, ItemCreateDto itemCreateDto) {
+    public ItemDto add(Long userId, ItemDto itemDto) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        itemCreateDto.setOwner(userId);
-        Item item = mapper.toModel(itemCreateDto);
+        itemDto.setOwner(userId);
+        Item item = mapper.toModel(itemDto);
         return mapper.toDto(itemRepository.save(item));
     }
 
     @Override
     public void delete(Long userId, Long itemId) {
-        itemRepository.deleteByUserIdAndItemId(userId, itemId);
+        itemRepository.deleteByIdAndOwnerId(itemId, userId);
     }
 
     @Transactional
     @Override
-    public ItemCreateDto update(Long userId, ItemCreateDto itemCreateDto) {
+    public ItemDto update(Long userId, ItemDto itemDto) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Item updateItem = itemRepository.findById(itemCreateDto.getId())
+        Item updateItem = itemRepository.findById(itemDto.getId())
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
         if (!updateItem.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Вещь может редактировать только ёё владелец");
         }
-        if (itemCreateDto.getName() != null) {
-            updateItem.setName(itemCreateDto.getName());
+        if (itemDto.getName() != null) {
+            updateItem.setName(itemDto.getName());
         }
-        if (itemCreateDto.getDescription() != null) {
-            updateItem.setDescription(itemCreateDto.getDescription());
+        if (itemDto.getDescription() != null) {
+            updateItem.setDescription(itemDto.getDescription());
         }
-        if (itemCreateDto.getAvailable() != null) {
-            updateItem.setAvailable(itemCreateDto.getAvailable());
+        if (itemDto.getAvailable() != null) {
+            updateItem.setAvailable(itemDto.getAvailable());
         }
         itemRepository.save(updateItem);
         return mapper.toDto(updateItem);
@@ -118,7 +118,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemCreateDto> search(String searchText) {
+    public List<ItemDto> search(String searchText) {
         if (searchText == null || searchText.isEmpty()) {
             return Collections.emptyList();
         }
@@ -133,13 +133,13 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-        List<Booking> booking = bookingRepository.findBookingByItemIdAndBookerIdAndEndTimeBeforeNow(itemId, userId, now);
+        List<Booking> booking = bookingRepository.findByItemIdAndBookerIdAndEndTimeBeforeNow(itemId, userId, now);
         if (booking.isEmpty()) {
             throw new ValidationException("Пользователь не имеет права оставлять комментарии для этой вещи");
         }
-        Comment comment = commentRepository.save(CommentMapper.toComment(commentDto, item, user));
+        Comment comment = commentRepository.save(CommentMapper.toModel(commentDto, item, user));
 
-        return CommentMapper.toCommentDto(comment);
+        return CommentMapper.toDto(comment);
     }
 
     private ItemInfoDto getItemDetails(Item item, List<Comment> comments, List<Booking> bookings, Long userId) {
@@ -155,7 +155,7 @@ public class ItemServiceImpl implements ItemService {
             lastBooking = lastBookingOptional.orElse(null);
 
             if (lastBooking == null) {
-                return mapper.toInfoDto(item, null, null, CommentMapper.toCommentDtoList(comments));
+                return mapper.toInfoDto(item, null, null, CommentMapper.toListDto(comments));
             }
 
             LocalDateTime endOfLastBooking = lastBookingOptional.get().getEnd();
@@ -166,6 +166,6 @@ public class ItemServiceImpl implements ItemService {
 
             nextBooking = nextBookingOptional.orElse(null);
         }
-        return mapper.toInfoDto(item, lastBooking, nextBooking, CommentMapper.toCommentDtoList(comments));
+        return mapper.toInfoDto(item, lastBooking, nextBooking, CommentMapper.toListDto(comments));
     }
 }

@@ -9,7 +9,7 @@ import java.util.List;
 
 @Component
 public class UserMapper {
-    public UserDto toUserDto(User user) {
+    public UserDto toDto(User user) {
         return new UserDto(
                 user.getId(),
                 user.getName(),
@@ -17,7 +17,7 @@ public class UserMapper {
         );
     }
 
-    public User toUser(UserDto userDto) {
+    public User toModel(UserDto userDto) {
         return new User(
                 userDto.getId(),
                 userDto.getName(),
@@ -25,7 +25,7 @@ public class UserMapper {
         );
     }
 
-    public List<UserDto> toUserDtoList(List<User> userList) {
+    public List<UserDto> toListDto(List<User> userList) {
         List<UserDto> userDtoList = new ArrayList<>();
         for (User user : userList) {
             userDtoList.add(new UserDto(

@@ -1,12 +1,14 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
-import ru.practicum.shareit.booking.dto.BookingResponseDto;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.model.Item;
@@ -31,8 +33,9 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
     private final BookingMapper mapper;
 
+    @Transactional
     @Override
-    public BookingResponseDto add(Long bookerId, BookingCreateDto bookingCreateDto) {
+    public BookingDto add(Long bookerId, BookingCreateDto bookingCreateDto) {
 
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -59,11 +62,11 @@ public class BookingServiceImpl implements BookingService {
         return mapper.toDto(savedBooking);
     }
 
-
+    @Transactional
     @Override
-    public BookingResponseDto update(Long userId, Long bookingId, boolean approved) {
+    public BookingDto update(Long userId, Long bookingId, boolean approved) {
 
-        Booking booking = bookingRepository.findBookingById(bookingId)
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         Item item = booking.getItem();
@@ -79,10 +82,11 @@ public class BookingServiceImpl implements BookingService {
         return mapper.toDto(updatedBooking);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public BookingResponseDto get(Long userId, Long bookingId) {
+    public BookingDto get(Long userId, Long bookingId) {
 
-        Booking booking = bookingRepository.findBookingById(bookingId)
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         Item item = booking.getItem();
@@ -93,73 +97,68 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<BookingResponseDto> getBookingsForBooker(Long userId, BookingState state) {
-        final LocalDateTime now = LocalDateTime.now();
+    public List<BookingDto> getBookingsForBooker(Long userId, BookingState state) {
+
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        List<Booking> bookings;
-        if (state == null) {
-            bookings = bookingRepository.findBookingsByBookerId(userId);
-        } else {
-            bookings = getBookingsBasedOnStateForBooker(userId, state, now);
-        }
+
+        List<Booking> bookings = getBookingsBasedOnStateForBooker(userId, state);
 
         return bookings.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<BookingResponseDto> getBookingsForOwner(Long ownerId, BookingState state) {
-        final LocalDateTime now = LocalDateTime.now();
+    public List<BookingDto> getBookingsForOwner(Long ownerId, BookingState state) {
+
         userRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        List<Booking> bookings;
-        if (state == null) {
-            bookings = bookingRepository.findBookingsByOwnerId(ownerId);
-        } else {
-            bookings = getBookingsBasedOnStateForOwner(ownerId, state, now);
-        }
+
+        List<Booking> bookings = getBookingsBasedOnStateForOwner(ownerId, state);
+
         return bookings.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
 
 
-    private List<Booking> getBookingsBasedOnStateForBooker(Long userId, BookingState state, LocalDateTime now) {
+    private List<Booking> getBookingsBasedOnStateForBooker(Long userId, BookingState state) {
         switch (state) {
             case PAST:
-                return bookingRepository.findBookingsByBookerIdAndEndDateBefore(userId, now);
+                return bookingRepository.findByBooker_IdAndEndIsBefore(userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "end"));
             case FUTURE:
-                return bookingRepository.findBookingsByBookerIdAndStartDateAfter(userId, now);
+                return bookingRepository.findByBooker_IdAndStartIsAfter(userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "start"));
             case WAITING:
-                return bookingRepository.findBookingsByBookerIdAndStatus(userId, BookingStatus.WAITING);
+                return bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.WAITING, Sort.by(Sort.Direction.DESC, "start"));
             case REJECTED:
-                return bookingRepository.findBookingsByBookerIdAndStatus(userId, BookingStatus.REJECTED);
+                return bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.REJECTED, Sort.by(Sort.Direction.DESC, "start"));
             case CURRENT:
-                return bookingRepository.findBookingsByBookerIdAndStartBeforeAndEndAfter(userId, now);
+                return bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(), LocalDateTime.now(), Sort.by(Sort.Direction.ASC, "start"));
             case ALL:
             default:
-                return bookingRepository.findBookingsByBookerId(userId);
+                return bookingRepository.findByBooker_Id(userId, Sort.by(Sort.Direction.DESC, "start"));
         }
     }
 
-    private List<Booking> getBookingsBasedOnStateForOwner(Long userId, BookingState state, LocalDateTime now) {
+    private List<Booking> getBookingsBasedOnStateForOwner(Long userId, BookingState state) {
         switch (state) {
             case PAST:
-                return bookingRepository.findBookingsByOwnerIdAndEndDateBefore(userId, now);
+                return bookingRepository.findByItem_Owner_IdAndEndIsBefore(userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "end"));
             case FUTURE:
-                return bookingRepository.findBookingsByOwnerIdAndStartDateAfter(userId, now);
+                return bookingRepository.findByItem_Owner_IdAndStartIsAfter(userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "start"));
             case WAITING:
-                return bookingRepository.findBookingsByOwnerIdAndStatus(userId, BookingStatus.WAITING);
+                return bookingRepository.findByItem_Owner_IdAndStatus(userId, BookingStatus.WAITING, Sort.by(Sort.Direction.DESC, "start"));
             case REJECTED:
-                return bookingRepository.findBookingsByOwnerIdAndStatus(userId, BookingStatus.REJECTED);
+                return bookingRepository.findByItem_Owner_IdAndStatus(userId, BookingStatus.REJECTED, Sort.by(Sort.Direction.DESC, "start"));
             case CURRENT:
-                return bookingRepository.findBookingsByOwnerIdAndStartBeforeAndEndAfter(userId, now);
+                return bookingRepository.findByItem_Owner_IdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(), LocalDateTime.now(), Sort.by(Sort.Direction.ASC, "start"));
             case ALL:
             default:
-                return bookingRepository.findBookingsByOwnerId(userId);
+                return bookingRepository.findByItem_Owner_Id(userId, Sort.by(Sort.Direction.DESC, "start"));
         }
     }
 
