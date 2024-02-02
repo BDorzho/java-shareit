@@ -8,6 +8,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.ArrayList;
@@ -22,8 +23,11 @@ public class ItemMapper {
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getOwner() != null ? item.getOwner().getId() : null);
+                item.getOwner().getId(),
+                (item.getRequest() != null) ? item.getRequest().getId() : null
+        );
     }
+
 
     public Item toModel(ItemDto itemDto) {
         Item item = new Item();
@@ -32,12 +36,14 @@ public class ItemMapper {
         item.setDescription(itemDto.getDescription());
         item.setAvailable(itemDto.getAvailable());
 
-        if (itemDto.getOwner() != null) {
-            User owner = new User();
-            owner.setId(itemDto.getOwner());
-            item.setOwner(owner);
+        User owner = new User();
+        owner.setId(itemDto.getOwner());
+        item.setOwner(owner);
+        if (itemDto.getRequestId() != null) {
+            ItemRequest request = new ItemRequest();
+            request.setId(itemDto.getRequestId());
+            item.setRequest(request);
         }
-
         return item;
     }
 
@@ -49,7 +55,9 @@ public class ItemMapper {
                     item.getName(),
                     item.getDescription(),
                     item.getAvailable(),
-                    item.getOwner() != null ? item.getOwner().getId() : null));
+                    item.getOwner().getId(),
+                    (item.getRequest() != null) ? item.getRequest().getId() : null
+            ));
         }
         return itemDtoList;
     }

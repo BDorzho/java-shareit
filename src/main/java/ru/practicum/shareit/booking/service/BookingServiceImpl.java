@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +37,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional
     @Override
-    public BookingDto add(Long bookerId, BookingCreateDto bookingCreateDto) {
+    public BookingDto add(long bookerId, BookingCreateDto bookingCreateDto) {
 
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -43,7 +45,7 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(bookingCreateDto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
-        if (item.getOwner().getId().equals(bookerId)) {
+        if (item.getOwner().getId() == bookerId) {
             throw new NotFoundException("Владелец не может забронировать свою вещь");
         }
 
@@ -64,13 +66,13 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional
     @Override
-    public BookingDto update(Long userId, Long bookingId, boolean approved) {
+    public BookingDto update(long userId, Long bookingId, boolean approved) {
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         Item item = booking.getItem();
-        if (!item.getOwner().getId().equals(userId)) {
+        if (item.getOwner().getId() != userId) {
             throw new NotFoundException("Изменение статуса бронирования разрешено только владельцу");
         }
         if (approved && booking.getStatus() != BookingStatus.WAITING) {
@@ -84,27 +86,27 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public BookingDto get(Long userId, Long bookingId) {
+    public BookingDto get(long userId, Long bookingId) {
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         Item item = booking.getItem();
-        if (booking.getBooker().getId().equals(userId) || item.getOwner().getId().equals(userId)) {
+        if (booking.getBooker().getId() == userId || item.getOwner().getId() == userId) {
             return mapper.toDto(booking);
         } else {
-            throw new NotFoundException("Пользователь не автор бронирования");
+            throw new NotFoundException("Пользователь не автор бронирования и не владелец вещи");
         }
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<BookingDto> getBookingsForBooker(Long userId, BookingState state) {
+    public List<BookingDto> getBookingsForBooker(long userId, BookingState state, int from, int size) {
 
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        List<Booking> bookings = getBookingsBasedOnStateForBooker(userId, state);
+        List<Booking> bookings = getBookingsBasedOnStateForBooker(userId, state, from, size);
 
         return bookings.stream()
                 .map(mapper::toDto)
@@ -113,12 +115,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<BookingDto> getBookingsForOwner(Long ownerId, BookingState state) {
+    public List<BookingDto> getBookingsForOwner(long ownerId, BookingState state, int from, int size) {
 
         userRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        List<Booking> bookings = getBookingsBasedOnStateForOwner(ownerId, state);
+        List<Booking> bookings = getBookingsBasedOnStateForOwner(ownerId, state, from, size);
 
         return bookings.stream()
                 .map(mapper::toDto)
@@ -126,39 +128,43 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    private List<Booking> getBookingsBasedOnStateForBooker(Long userId, BookingState state) {
+    private List<Booking> getBookingsBasedOnStateForBooker(long userId, BookingState state, int from, int size) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "start");
+        Pageable pageable = PageRequest.of(from / size, size, sort);
         switch (state) {
             case PAST:
-                return bookingRepository.findByBooker_IdAndEndIsBefore(userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "end"));
+                return bookingRepository.findByBooker_IdAndEndIsBefore(userId, LocalDateTime.now(), pageable);
             case FUTURE:
-                return bookingRepository.findByBooker_IdAndStartIsAfter(userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "start"));
+                return bookingRepository.findByBooker_IdAndStartIsAfter(userId, LocalDateTime.now(), pageable);
             case WAITING:
-                return bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.WAITING, Sort.by(Sort.Direction.DESC, "start"));
+                return bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.WAITING, pageable);
             case REJECTED:
-                return bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.REJECTED, Sort.by(Sort.Direction.DESC, "start"));
+                return bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.REJECTED, pageable);
             case CURRENT:
-                return bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(), LocalDateTime.now(), Sort.by(Sort.Direction.ASC, "start"));
+                return bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(), LocalDateTime.now(), pageable);
             case ALL:
             default:
-                return bookingRepository.findByBooker_Id(userId, Sort.by(Sort.Direction.DESC, "start"));
+                return bookingRepository.findByBooker_Id(userId, pageable);
         }
     }
 
-    private List<Booking> getBookingsBasedOnStateForOwner(Long userId, BookingState state) {
+    private List<Booking> getBookingsBasedOnStateForOwner(long ownerId, BookingState state, int from, int size) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "start");
+        Pageable pageable = PageRequest.of(from / size, size, sort);
         switch (state) {
             case PAST:
-                return bookingRepository.findByItem_Owner_IdAndEndIsBefore(userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "end"));
+                return bookingRepository.findByItem_Owner_IdAndEndIsBefore(ownerId, LocalDateTime.now(), pageable);
             case FUTURE:
-                return bookingRepository.findByItem_Owner_IdAndStartIsAfter(userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "start"));
+                return bookingRepository.findByItem_Owner_IdAndStartIsAfter(ownerId, LocalDateTime.now(), pageable);
             case WAITING:
-                return bookingRepository.findByItem_Owner_IdAndStatus(userId, BookingStatus.WAITING, Sort.by(Sort.Direction.DESC, "start"));
+                return bookingRepository.findByItem_Owner_IdAndStatus(ownerId, BookingStatus.WAITING, pageable);
             case REJECTED:
-                return bookingRepository.findByItem_Owner_IdAndStatus(userId, BookingStatus.REJECTED, Sort.by(Sort.Direction.DESC, "start"));
+                return bookingRepository.findByItem_Owner_IdAndStatus(ownerId, BookingStatus.REJECTED, pageable);
             case CURRENT:
-                return bookingRepository.findByItem_Owner_IdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(), LocalDateTime.now(), Sort.by(Sort.Direction.ASC, "start"));
+                return bookingRepository.findByItem_Owner_IdAndStartIsBeforeAndEndIsAfter(ownerId, LocalDateTime.now(), LocalDateTime.now(), pageable);
             case ALL:
             default:
-                return bookingRepository.findByItem_Owner_Id(userId, Sort.by(Sort.Direction.DESC, "start"));
+                return bookingRepository.findByItem_Owner_Id(ownerId, pageable);
         }
     }
 

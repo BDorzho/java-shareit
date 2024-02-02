@@ -11,8 +11,11 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.validation.valid.OnCreate;
 import ru.practicum.shareit.validation.valid.OnUpdate;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -22,15 +25,18 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<ItemInfoDto> getItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemInfoDto> getItems(@RequestHeader("X-Sharer-User-Id") long userId,
+                                      @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
+                                      @RequestParam(value = "size", defaultValue = "20") @Min(1) @Max(100) int size) {
+
         log.info("Получение списка вещей");
-        List<ItemInfoDto> items = itemService.getItems(userId);
+        List<ItemInfoDto> items = itemService.getItems(userId, from, size);
         log.info("Получено {} вещей ", items.size());
         return items;
     }
 
     @GetMapping("/{itemId}")
-    public ItemInfoDto get(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ItemInfoDto get(@RequestHeader("X-Sharer-User-Id") long userId,
                            @PathVariable Long itemId) {
         log.info("Получение вещи с идентификатором: {}", itemId);
         ItemInfoDto itemDto = itemService.getById(itemId, userId);
@@ -39,7 +45,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ItemDto add(@RequestHeader("X-Sharer-User-Id") long userId,
                        @Validated(OnCreate.class) @RequestBody ItemDto itemDto) {
         log.info("Пользователь с id: {}, создает вещь", userId);
         ItemDto createItem = itemService.add(userId, itemDto);
@@ -48,7 +54,7 @@ public class ItemController {
     }
 
     @DeleteMapping("/{itemId}")
-    public void deleteItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public void deleteItem(@RequestHeader("X-Sharer-User-Id") long userId,
                            @PathVariable Long itemId) {
         log.info("Удаление вещи с id: {}, у пользователя с id: {}", itemId, userId);
         itemService.delete(userId, itemId);
@@ -56,7 +62,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ItemDto update(@RequestHeader("X-Sharer-User-Id") long userId,
                           @PathVariable Long itemId,
                           @Validated(OnUpdate.class) @RequestBody ItemDto itemDto) {
         log.info("Редактирование свойств вещи у пользователя с id: {}", userId);
@@ -67,15 +73,18 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestParam("text") String searchText) {
+    public List<ItemDto> search(@RequestParam("text") String searchText,
+                                @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
+                                @RequestParam(value = "size", defaultValue = "20") @Min(1) @Max(100) int size) {
+
         log.info("Поиск вещей по тексту: {}", searchText);
-        List<ItemDto> items = itemService.search(searchText);
+        List<ItemDto> items = itemService.search(searchText, from, size);
         log.info("Найдено {} вещей по тексту {}", items.size(), searchText);
         return items;
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDto addComment(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public CommentDto addComment(@RequestHeader("X-Sharer-User-Id") long userId,
                                  @PathVariable Long itemId,
                                  @Validated(OnCreate.class) @RequestBody CommentDto commentDto) {
         log.info("Пользователь с id: {}, добавляет комментарий", userId);

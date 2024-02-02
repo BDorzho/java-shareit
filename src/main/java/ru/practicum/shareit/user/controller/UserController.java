@@ -38,7 +38,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public UserDto get(@PathVariable Long userId) {
+    public UserDto get(@PathVariable long userId) {
         log.info("Получение пользователя с идентификатором: {}", userId);
         UserDto userDto = userService.getById(userId);
         log.info("Пользователь с идентификатором {} получен", userId);
@@ -46,7 +46,7 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    public UserDto update(@PathVariable Long userId, @Validated(OnUpdate.class) @RequestBody UserDto userDto) {
+    public UserDto update(@PathVariable long userId, @Validated(OnUpdate.class) @RequestBody UserDto userDto) {
         log.info("Обновление имени пользователя с идентификатором: {}", userId);
         UserDto updatedUser = userService.update(userId, userDto);
         log.info("Имя у пользователя с идентификатором: {} обновлен", userId);
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public void delete(@PathVariable Long userId) {
+    public void delete(@PathVariable long userId) {
         log.info("Удаление пользователя с идентификатором: {}", userId);
         userService.delete(userId);
         log.info("Пользователь с идентификатором {} удален", userId);

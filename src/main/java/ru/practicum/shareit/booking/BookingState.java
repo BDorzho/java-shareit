@@ -1,7 +1,5 @@
 package ru.practicum.shareit.booking;
 
-import java.util.HashMap;
-import java.util.Map;
 
 public enum BookingState {
     PAST,
@@ -11,19 +9,15 @@ public enum BookingState {
     CURRENT,
     ALL;
 
-    private static final Map<String, BookingState> STATE_MAP = new HashMap<>();
-
-    static {
-        for (BookingState status : BookingState.values()) {
-            STATE_MAP.put(status.name().toLowerCase(), status);
-        }
-    }
-
     public static BookingState fromString(String state) {
         String stateLower = state.toLowerCase();
-        if (STATE_MAP.containsKey(stateLower)) {
-            return STATE_MAP.get(stateLower);
+        for (BookingState status : values()) {
+            if (status.name().toLowerCase().equals(stateLower)) {
+                return status;
+            }
         }
         throw new IllegalArgumentException("Unknown state: " + state);
     }
 }
+
+

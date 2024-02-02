@@ -34,14 +34,14 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public UserDto getById(Long userId) {
+    public UserDto getById(long userId) {
         return mapper.toDto(userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден")));
     }
 
     @Transactional
     @Override
-    public UserDto update(Long userId, UserDto userDto) {
+    public UserDto update(long userId, UserDto userDto) {
         User updateUser = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         if (userDto.getName() != null) {
@@ -55,9 +55,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(Long userId) {
+    public void delete(long userId) {
         userRepository.deleteById(userId);
     }
-
-
 }

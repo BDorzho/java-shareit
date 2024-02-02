@@ -1,6 +1,10 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
@@ -40,13 +44,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemInfoDto> getItems(long userId) {
+    public List<ItemInfoDto> getItems(long userId, int from, int size) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        List<Item> items = itemRepository.findItemsByOwnerId(userId);
+        Pageable pageable = PageRequest.of(from / size, size);
+        Page<Item> itemPage = itemRepository.findItemsByOwnerId(userId, pageable);
 
-        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        List<Long> itemIds = itemPage.getContent().stream()
+                .map(Item::getId)
+                .collect(Collectors.toList());
+
         List<Booking> bookingList = bookingRepository.findByItems(itemIds);
         List<Comment> commentList = commentRepository.findByItems(itemIds);
 
@@ -56,7 +64,7 @@ public class ItemServiceImpl implements ItemService {
         Map<Long, List<Comment>> commentsMap = commentList.stream()
                 .collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
 
-        return items.stream()
+        return itemPage.getContent().stream()
                 .map(item -> {
                     List<Booking> itemBookings = bookingsMap.getOrDefault(item.getId(), Collections.emptyList());
                     List<Comment> itemComments = commentsMap.getOrDefault(item.getId(), Collections.emptyList());
@@ -67,7 +75,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public ItemInfoDto getById(Long itemId, Long userId) {
+    public ItemInfoDto getById(Long itemId, long userId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
@@ -79,7 +87,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional
     @Override
-    public ItemDto add(Long userId, ItemDto itemDto) {
+    public ItemDto add(long userId, ItemDto itemDto) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
@@ -89,18 +97,18 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public void delete(Long userId, Long itemId) {
+    public void delete(long userId, Long itemId) {
         itemRepository.deleteByIdAndOwnerId(itemId, userId);
     }
 
     @Transactional
     @Override
-    public ItemDto update(Long userId, ItemDto itemDto) {
+    public ItemDto update(long userId, ItemDto itemDto) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Item updateItem = itemRepository.findById(itemDto.getId())
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-        if (!updateItem.getOwner().getId().equals(userId)) {
+        if (updateItem.getOwner().getId() != userId) {
             throw new NotFoundException("Вещь может редактировать только ёё владелец");
         }
         if (itemDto.getName() != null) {
@@ -118,16 +126,19 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemDto> search(String searchText) {
+    public List<ItemDto> search(String searchText, int from, int size) {
         if (searchText == null || searchText.isEmpty()) {
             return Collections.emptyList();
         }
-        return mapper.toListDto(itemRepository.search(searchText));
+
+        Pageable pageable = PageRequest.of(from / size, size);
+        Page<Item> itemPage = itemRepository.search(searchText, pageable);
+        return mapper.toListDto(itemPage.getContent());
     }
 
     @Transactional
     @Override
-    public CommentDto addCommentToItem(Long itemId, Long userId, CommentDto commentDto) {
+    public CommentDto addCommentToItem(Long itemId, long userId, CommentDto commentDto) {
         LocalDateTime now = LocalDateTime.now();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -142,12 +153,12 @@ public class ItemServiceImpl implements ItemService {
         return CommentMapper.toDto(comment);
     }
 
-    private ItemInfoDto getItemDetails(Item item, List<Comment> comments, List<Booking> bookings, Long userId) {
+    private ItemInfoDto getItemDetails(Item item, List<Comment> comments, List<Booking> bookings, long userId) {
         LocalDateTime now = LocalDateTime.now();
         Booking lastBooking = null;
         Booking nextBooking = null;
 
-        if (item.getOwner().getId().equals(userId)) {
+        if (item.getOwner().getId() == userId) {
             Optional<Booking> lastBookingOptional = bookings.stream()
                     .filter(booking -> booking.getStart().isBefore(now) || booking.getEnd().isBefore(now))
                     .max(Comparator.comparing(Booking::getEnd));

@@ -27,10 +27,8 @@ public class ItemDto {
     @NotNull(message = "Статус доступности вещи не может быть пустым", groups = OnCreate.class)
     private Boolean available;
 
-    private Long owner;
+    private long owner;
 
-    public ItemDto(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+    private Long requestId;
+
 }
