@@ -1,9 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingState;
@@ -13,8 +11,8 @@ import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.validation.exception.NotFoundException;
@@ -101,12 +99,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<BookingDto> getBookingsForBooker(long userId, BookingState state, int from, int size) {
+    public List<BookingDto> getBookingsForBooker(long userId, BookingState state, Pageable pageable) {
 
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        List<Booking> bookings = getBookingsBasedOnStateForBooker(userId, state, from, size);
+        List<Booking> bookings = getBookingsBasedOnStateForBooker(userId, state, pageable);
 
         return bookings.stream()
                 .map(mapper::toDto)
@@ -115,12 +113,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<BookingDto> getBookingsForOwner(long ownerId, BookingState state, int from, int size) {
+    public List<BookingDto> getBookingsForOwner(long ownerId, BookingState state, Pageable pageable) {
 
         userRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        List<Booking> bookings = getBookingsBasedOnStateForOwner(ownerId, state, from, size);
+        List<Booking> bookings = getBookingsBasedOnStateForOwner(ownerId, state, pageable);
 
         return bookings.stream()
                 .map(mapper::toDto)
@@ -128,9 +126,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    private List<Booking> getBookingsBasedOnStateForBooker(long userId, BookingState state, int from, int size) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "start");
-        Pageable pageable = PageRequest.of(from / size, size, sort);
+    private List<Booking> getBookingsBasedOnStateForBooker(long userId, BookingState state, Pageable pageable) {
         switch (state) {
             case PAST:
                 return bookingRepository.findByBooker_IdAndEndIsBefore(userId, LocalDateTime.now(), pageable);
@@ -148,9 +144,7 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private List<Booking> getBookingsBasedOnStateForOwner(long ownerId, BookingState state, int from, int size) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "start");
-        Pageable pageable = PageRequest.of(from / size, size, sort);
+    private List<Booking> getBookingsBasedOnStateForOwner(long ownerId, BookingState state, Pageable pageable) {
         switch (state) {
             case PAST:
                 return bookingRepository.findByItem_Owner_IdAndEndIsBefore(ownerId, LocalDateTime.now(), pageable);

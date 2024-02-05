@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -37,6 +39,8 @@ public class ItemControllerTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
+    Pageable pageable = PageRequest.of(0, 20);
+
     @BeforeEach
     public void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(itemController).build();
@@ -46,20 +50,19 @@ public class ItemControllerTest {
     public void testGetItems() throws Exception {
 
         long userId = 1;
-        int from = 0;
-        int size = 20;
+
         List<ItemInfoDto> expectedItems = Arrays.asList(
                 new ItemInfoDto(1L, "Item 1", "Description 1", true, null, null, null),
                 new ItemInfoDto(2L, "Item 2", "Description 2", true, null, null, null)
         );
 
-        when(itemService.getItems(userId, from, size)).thenReturn(expectedItems);
+        when(itemService.getItems(userId, pageable)).thenReturn(expectedItems);
 
 
         mockMvc.perform(get("/items")
                         .header("X-Sharer-User-Id", String.valueOf(userId))
-                        .param("from", String.valueOf(from))
-                        .param("size", String.valueOf(size)))
+                        .param("from", String.valueOf(0))
+                        .param("size", String.valueOf(20)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is(1)))
@@ -78,7 +81,7 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$[1].comments", is(nullValue())));
 
 
-        verify(itemService, times(1)).getItems(userId, from, size);
+        verify(itemService, times(1)).getItems(userId, pageable);
         verifyNoMoreInteractions(itemService);
     }
 
@@ -170,20 +173,19 @@ public class ItemControllerTest {
     public void testSearchItems() throws Exception {
 
         String searchText = "search_text";
-        int from = 0;
-        int size = 10;
+
         List<ItemDto> searchResult = Arrays.asList(
                 new ItemDto(1L, "Item 1", "Description 1", true, 1, 1L),
                 new ItemDto(2L, "Item 2", "Description 2", true, 2, 2L)
         );
 
-        when(itemService.search(searchText, from, size)).thenReturn(searchResult);
+        when(itemService.search(searchText, pageable)).thenReturn(searchResult);
 
 
         mockMvc.perform(get("/items/search")
                         .param("text", searchText)
-                        .param("from", String.valueOf(from))
-                        .param("size", String.valueOf(size)))
+                        .param("from", String.valueOf(0))
+                        .param("size", String.valueOf(20)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is(1)))
@@ -199,7 +201,7 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$[1].owner", is(2)))
                 .andExpect(jsonPath("$[1].requestId", is(2)));
 
-        verify(itemService, times(1)).search(searchText, from, size);
+        verify(itemService, times(1)).search(searchText, pageable);
     }
 
     @Test

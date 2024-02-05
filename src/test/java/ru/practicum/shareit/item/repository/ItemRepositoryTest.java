@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -12,6 +11,8 @@ import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.TypedQuery;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,11 +44,11 @@ public class ItemRepositoryTest {
         itemRepository.save(item);
 
         // when
-        Page<Item> items = itemRepository.findItemsByOwnerId(owner.getId(), PageRequest.of(0, 10));
+        List<Item> items = itemRepository.findItemsByOwnerId(owner.getId(), PageRequest.of(0, 10));
 
         // then
         assertThat(items).isNotEmpty();
-        assertThat(items.getTotalElements()).isEqualTo(1);
+        assertThat(items.size()).isEqualTo(1);
     }
 
     @Test
@@ -90,7 +91,7 @@ public class ItemRepositoryTest {
         itemRepository.save(item);
 
         // when
-        Page<Item> items = itemRepository.search("item", PageRequest.of(0, 10));
+        List<Item> items = itemRepository.search("item", PageRequest.of(0, 10));
 
         // then
         TypedQuery<Item> query =
@@ -102,6 +103,6 @@ public class ItemRepositoryTest {
         Item findItem = query.getSingleResult();
 
         assertThat(findItem).isNotNull();
-        assertThat(items.getTotalElements()).isEqualTo(1);
+        assertThat(items.size()).isEqualTo(1);
     }
 }

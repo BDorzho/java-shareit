@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.dao;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -15,7 +14,7 @@ import java.util.List;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    Page<Item> findItemsByOwnerId(long userId, Pageable pageable);
+    List<Item> findItemsByOwnerId(long userId, Pageable pageable);
 
     @Modifying
     @Transactional
@@ -25,7 +24,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "WHERE (UPPER(i.name) LIKE UPPER(CONCAT('%', :searchText, '%')) " +
             "OR UPPER(i.description) LIKE UPPER(CONCAT('%', :searchText, '%'))) " +
             "AND i.available = true")
-    Page<Item> search(@Param("searchText") String searchText, Pageable pageable);
+    List<Item> search(@Param("searchText") String searchText, Pageable pageable);
 
 
     List<Item> findByRequestIdIn(List<Long> requestIds);

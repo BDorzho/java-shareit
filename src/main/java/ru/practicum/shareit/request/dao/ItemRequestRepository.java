@@ -12,7 +12,7 @@ import java.util.List;
 public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> {
     List<ItemRequest> findByRequesterIdOrderByCreatedDesc(long userId);
 
-    Page<ItemRequest> findByRequesterIdNot(long userId, Pageable pageable);
+    List<ItemRequest> findByRequesterIdNot(long userId, Pageable pageable);
 
 
 }

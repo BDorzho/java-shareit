@@ -2,8 +2,6 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dao.BookingRepository;
@@ -44,14 +42,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemInfoDto> getItems(long userId, int from, int size) {
+    public List<ItemInfoDto> getItems(long userId, Pageable pageable) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        Pageable pageable = PageRequest.of(from / size, size);
-        Page<Item> itemPage = itemRepository.findItemsByOwnerId(userId, pageable);
+        List<Item> itemPage = itemRepository.findItemsByOwnerId(userId, pageable);
 
-        List<Long> itemIds = itemPage.getContent().stream()
+        List<Long> itemIds = itemPage.stream()
                 .map(Item::getId)
                 .collect(Collectors.toList());
 
@@ -64,7 +61,7 @@ public class ItemServiceImpl implements ItemService {
         Map<Long, List<Comment>> commentsMap = commentList.stream()
                 .collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
 
-        return itemPage.getContent().stream()
+        return itemPage.stream()
                 .map(item -> {
                     List<Booking> itemBookings = bookingsMap.getOrDefault(item.getId(), Collections.emptyList());
                     List<Comment> itemComments = commentsMap.getOrDefault(item.getId(), Collections.emptyList());
@@ -126,14 +123,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemDto> search(String searchText, int from, int size) {
+    public List<ItemDto> search(String searchText, Pageable pageable) {
         if (searchText == null || searchText.isEmpty()) {
             return Collections.emptyList();
         }
 
-        Pageable pageable = PageRequest.of(from / size, size);
-        Page<Item> itemPage = itemRepository.search(searchText, pageable);
-        return mapper.toListDto(itemPage.getContent());
+        List<Item> itemPage = itemRepository.search(searchText, pageable);
+        return mapper.toListDto(itemPage);
     }
 
     @Transactional

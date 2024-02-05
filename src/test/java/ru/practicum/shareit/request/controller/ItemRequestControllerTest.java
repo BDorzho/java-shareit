@@ -80,7 +80,7 @@ public class ItemRequestControllerTest {
         List<ItemRequestInfoDto> itemRequestDtoList = new ArrayList<>();
 
         // when
-        when(itemRequestService.getAll(1, 0, 20)).thenReturn(itemRequestDtoList);
+        when(itemRequestService.getAll(anyLong(), any())).thenReturn(itemRequestDtoList);
 
         // then
         mvc.perform(get("/requests/all")
@@ -97,7 +97,7 @@ public class ItemRequestControllerTest {
         List<ItemRequestInfoDto> itemRequestDtoList = new ArrayList<>();
 
         // when
-        when(itemRequestService.getAll(1, 0, 20)).thenReturn(itemRequestDtoList);
+        when(itemRequestService.getAll(anyLong(), any())).thenReturn(itemRequestDtoList);
 
         // then
         mvc.perform(get("/requests/all")
@@ -114,7 +114,7 @@ public class ItemRequestControllerTest {
         List<ItemRequestInfoDto> itemRequestDtoList = new ArrayList<>();
 
         // when
-        when(itemRequestService.getAll(1, 0, 20)).thenReturn(itemRequestDtoList);
+        when(itemRequestService.getAll(anyLong(), any())).thenReturn(itemRequestDtoList);
 
         // then
         mvc.perform(get("/requests/all")

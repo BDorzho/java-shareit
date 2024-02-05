@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
@@ -38,6 +41,8 @@ public class BookingServiceImplTest {
     UserDto booker;
 
     ItemDto item;
+
+    Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "start"));
 
     @BeforeEach
     void setUp() {
@@ -393,7 +398,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.ALL, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.ALL, pageable);
 
         // then
 
@@ -427,7 +432,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.ALL, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.ALL, pageable);
 
         // then
 
@@ -461,7 +466,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.PAST, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.PAST, pageable);
 
         // then
 
@@ -497,7 +502,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.FUTURE, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.FUTURE, pageable);
 
         // then
 
@@ -533,7 +538,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.WAITING, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.WAITING, pageable);
 
         // then
 
@@ -576,7 +581,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.REJECTED, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.REJECTED, pageable);
 
         // then
 
@@ -613,7 +618,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.CURRENT, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.CURRENT, pageable);
 
         // then
 
@@ -643,7 +648,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> resultList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.ALL, 0, 1);
+        List<BookingDto> resultList = bookingService.getBookingsForOwner(expectedOwner.getId(), BookingState.ALL, PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "start")));
 
         // then
         assertEquals(1, resultList.size());
@@ -670,7 +675,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.ALL, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.ALL, PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "start")));
 
         // then
 
@@ -704,7 +709,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.ALL, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.ALL, pageable);
 
         // then
 
@@ -738,7 +743,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.PAST, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.PAST, pageable);
 
         // then
 
@@ -774,7 +779,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.FUTURE, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.FUTURE, pageable);
 
         // then
 
@@ -810,7 +815,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.WAITING, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.WAITING, pageable);
 
         // then
 
@@ -853,7 +858,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.REJECTED, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.REJECTED, pageable);
 
         // then
 
@@ -890,7 +895,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.CURRENT, 0, 20);
+        List<BookingDto> expectedList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.CURRENT, pageable);
 
         // then
 
@@ -920,7 +925,7 @@ public class BookingServiceImplTest {
 
         // when
 
-        List<BookingDto> resultList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.ALL, 0, 1);
+        List<BookingDto> resultList = bookingService.getBookingsForBooker(expectedBooker.getId(), BookingState.ALL, PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "start")));
 
         // then
         assertEquals(1, resultList.size());

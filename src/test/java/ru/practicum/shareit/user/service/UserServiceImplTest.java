@@ -95,7 +95,7 @@ public class UserServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
 
         // when
-        userService.update(1, userDto);
+        userService.update(userDto);
 
         // then
 

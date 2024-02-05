@@ -279,7 +279,7 @@ class BookingControllerTest {
         List<BookingDto> expectedBookings = new ArrayList<>();
 
         // when
-        when(bookingService.getBookingsForBooker(anyLong(), any(), anyInt(), anyInt())).thenReturn(expectedBookings);
+        when(bookingService.getBookingsForBooker(anyLong(), any(), any())).thenReturn(expectedBookings);
 
         // then
         mvc.perform(get("/bookings")
@@ -298,7 +298,7 @@ class BookingControllerTest {
         List<BookingDto> expectedBookings = new ArrayList<>();
 
         // when
-        when(bookingService.getBookingsForOwner(anyLong(), any(), anyInt(), anyInt())).thenReturn(expectedBookings);
+        when(bookingService.getBookingsForOwner(anyLong(), any(), any())).thenReturn(expectedBookings);
 
         // then
         mvc.perform(get("/bookings/owner")
@@ -316,14 +316,14 @@ class BookingControllerTest {
         String wrongState = "UNSUPPORTED_STATUS";
 
         // when
-        when(bookingService.getBookingsForBooker(anyLong(), any(BookingState.class), anyInt(), anyInt()))
+        when(bookingService.getBookingsForBooker(anyLong(), any(BookingState.class), any()))
                 .thenThrow(new IllegalArgumentException("Unknown state: " + wrongState));
 
         // then
         mvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", String.valueOf(1))
                         .param("state", wrongState))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -332,7 +332,7 @@ class BookingControllerTest {
         List<BookingDto> expectedBookings = new ArrayList<>();
 
         // when
-        when(bookingService.getBookingsForOwner(anyLong(), any(), anyInt(), anyInt())).thenReturn(expectedBookings);
+        when(bookingService.getBookingsForOwner(anyLong(), any(), any())).thenReturn(expectedBookings);
 
         // then
         mvc.perform(get("/bookings/owner")
@@ -343,13 +343,11 @@ class BookingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(expectedBookings)));
 
-        verify(bookingService).getBookingsForOwner(eq(123L), eq(BookingState.ALL), eq(0), eq(20));
+        verify(bookingService).getBookingsForOwner(eq(123L), eq(BookingState.ALL), any());
     }
 
     @Test
     public void testGetBookingsByOwnerWithInvalidFrom() throws Exception {
-        // given
-        List<BookingDto> expectedBookings = new ArrayList<>();
 
         // then
         mvc.perform(get("/bookings/owner")
@@ -362,8 +360,6 @@ class BookingControllerTest {
 
     @Test
     public void testGetBookingsByOwnerWithInvalidSize() throws Exception {
-        // given
-        List<BookingDto> expectedBookings = new ArrayList<>();
 
         // then
         mvc.perform(get("/bookings/owner")

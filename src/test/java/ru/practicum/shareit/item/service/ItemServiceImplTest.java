@@ -7,6 +7,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -61,6 +63,8 @@ public class ItemServiceImplTest {
 
     UserDto createUser;
 
+    Pageable pageable = PageRequest.of(0, 20);
+
 
     @BeforeEach
     void setUp() {
@@ -102,9 +106,7 @@ public class ItemServiceImplTest {
     @Test
     public void testCreateItemWithNotFoundUser() {
         //when
-        Exception exception = assertThrows(NotFoundException.class, () -> {
-            itemService.add(1, itemMapper.toDto(item));
-        });
+        Exception exception = assertThrows(NotFoundException.class, () -> itemService.add(1, itemMapper.toDto(item)));
 
         // then
         assertTrue(exception.getMessage().contains("Пользователь не найден"));
@@ -172,9 +174,7 @@ public class ItemServiceImplTest {
         ItemService actualItemService = new ItemServiceImpl(itemRepository, userRepository, null, null, itemMapper);
 
         // when
-        Exception exception = assertThrows(NotFoundException.class, () -> {
-            actualItemService.update(2L, updateItem);
-        });
+        Exception exception = assertThrows(NotFoundException.class, () -> actualItemService.update(2L, updateItem));
 
         // then
         assertEquals("Вещь может редактировать только ёё владелец", exception.getMessage());
@@ -230,9 +230,7 @@ public class ItemServiceImplTest {
         userService.create(userMapper.toDto(owner));
 
         // when
-        Exception exception = assertThrows(NotFoundException.class, () -> {
-            itemService.getById(1L, 1L);
-        });
+        Exception exception = assertThrows(NotFoundException.class, () -> itemService.getById(1L, 1L));
 
         // then
         assertEquals("Вещь не найдена", exception.getMessage());
@@ -245,7 +243,7 @@ public class ItemServiceImplTest {
         itemService.add(actualUser.getId(), itemMapper.toDto(item));
 
         // when
-        itemService.search("item", 0, 10);
+        itemService.search("item", pageable);
 
         // then
         TypedQuery<Item> query =
@@ -272,7 +270,7 @@ public class ItemServiceImplTest {
         itemService.add(actualUser.getId(), itemMapper.toDto(item));
 
         // when
-        List<ItemDto> expectedItem = itemService.search("item", 0, 10);
+        List<ItemDto> expectedItem = itemService.search("item", pageable);
 
         // then
         assertThat(expectedItem).isEmpty();
@@ -286,7 +284,7 @@ public class ItemServiceImplTest {
         itemService.add(actualUser.getId(), itemMapper.toDto(item));
 
         // when
-        List<ItemDto> expectedItem = itemService.search("", 0, 10);
+        List<ItemDto> expectedItem = itemService.search("", pageable);
 
         // then
         assertThat(expectedItem).isEmpty();
@@ -301,7 +299,7 @@ public class ItemServiceImplTest {
         ItemDto itemDto = itemService.add(ownerDto.getId(), itemMapper.toDto(item));
 
         // when
-        List<ItemInfoDto> list = itemService.getItems(ownerDto.getId(), 0, 20);
+        List<ItemInfoDto> list = itemService.getItems(ownerDto.getId(), pageable);
 
         // then
         assertEquals(list.size(), 1);
@@ -349,7 +347,7 @@ public class ItemServiceImplTest {
         CommentDto expectedComment = itemService.addCommentToItem(expectedItem.getId(), expectedBooker.getId(), commentDto);
 
         // when
-        List<ItemInfoDto> expectedItemDetails = itemService.getItems(expectedOwner.getId(), 0, 20);
+        List<ItemInfoDto> expectedItemDetails = itemService.getItems(expectedOwner.getId(), pageable);
 
         // then
         assertEquals(expectedItemDetails.size(), 1);
@@ -431,9 +429,7 @@ public class ItemServiceImplTest {
         CommentDto commentDto = new CommentDto();
 
         // when
-        Exception exception = assertThrows(NotFoundException.class, () -> {
-            itemService.addCommentToItem(1L, 1, commentDto);
-        });
+        Exception exception = assertThrows(NotFoundException.class, () -> itemService.addCommentToItem(1L, 1, commentDto));
 
         // then
         assertEquals("Пользователь не найден", exception.getMessage());
@@ -447,9 +443,7 @@ public class ItemServiceImplTest {
         CommentDto commentDto = new CommentDto();
 
         // when
-        Exception exception = assertThrows(NotFoundException.class, () -> {
-            itemService.addCommentToItem(1L, expectedUser.getId(), commentDto);
-        });
+        Exception exception = assertThrows(NotFoundException.class, () -> itemService.addCommentToItem(1L, expectedUser.getId(), commentDto));
 
         // then
         assertEquals("Вещь не найдена", exception.getMessage());
@@ -492,9 +486,7 @@ public class ItemServiceImplTest {
         CommentDto commentDto = new CommentDto();
 
         // when
-        Exception exception = assertThrows(ValidationException.class, () -> {
-            itemService.addCommentToItem(expectedItem.getId(), wrongUser.getId(), commentDto);
-        });
+        Exception exception = assertThrows(ValidationException.class, () -> itemService.addCommentToItem(expectedItem.getId(), wrongUser.getId(), commentDto));
 
         // then
         assertEquals("Пользователь не имеет права оставлять комментарии для этой вещи", exception.getMessage());

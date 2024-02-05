@@ -1,10 +1,7 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.dao.ItemRepository;
@@ -78,11 +75,11 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemRequestInfoDto> getAll(long userId, int from, int size) {
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("created").descending());
-        Page<ItemRequest> page = itemRequestRepository.findByRequesterIdNot(userId, pageable);
+    public List<ItemRequestInfoDto> getAll(long userId, Pageable pageable) {
 
-        List<Long> requestIds = page.getContent().stream()
+        List<ItemRequest> page = itemRequestRepository.findByRequesterIdNot(userId, pageable);
+
+        List<Long> requestIds = page.stream()
                 .map(ItemRequest::getId)
                 .collect(Collectors.toList());
 
@@ -90,7 +87,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .stream()
                 .collect(Collectors.groupingBy(item -> item.getRequest().getId()));
 
-        return page.getContent().stream()
+        return page.stream()
                 .map(request -> {
                     List<ItemDto> responseItemDto = responseItemsPerRequest.getOrDefault(request.getId(), Collections.emptyList())
                             .stream()

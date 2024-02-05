@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -37,6 +40,8 @@ public class ItemRequestServiceImplTest {
     ItemDto item;
 
     ItemRequestDto itemRequestDto;
+
+    Pageable pageable = PageRequest.of(0, 20, Sort.by("created").descending());
 
 
     @BeforeEach
@@ -130,7 +135,7 @@ public class ItemRequestServiceImplTest {
         ItemRequestDto expectedItemRequest = itemRequestService.create(userCreateRequest.getId(), itemRequestDto);
 
         // when
-        List<ItemRequestInfoDto> expectedRequest = itemRequestService.getAll(seeUser.getId(), 0, 20);
+        List<ItemRequestInfoDto> expectedRequest = itemRequestService.getAll(seeUser.getId(), pageable);
 
         // then
 
@@ -146,7 +151,7 @@ public class ItemRequestServiceImplTest {
         UserDto seeUser = userService.create(ownerItem);
 
         // when
-        List<ItemRequestInfoDto> expectedRequest = itemRequestService.getAll(seeUser.getId(), 0, 20);
+        List<ItemRequestInfoDto> expectedRequest = itemRequestService.getAll(seeUser.getId(), pageable);
 
         // then
 

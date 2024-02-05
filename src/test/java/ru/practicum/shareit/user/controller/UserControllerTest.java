@@ -129,7 +129,7 @@ public class UserControllerTest {
         UserDto userDto = new UserDto(1, "Updated Name", "john@example.com");
 
         // when
-        when(userService.update(eq(1L), any(UserDto.class))).thenReturn(userDto);
+        when(userService.update(any(UserDto.class))).thenReturn(userDto);
 
         // then
         mvc.perform(patch("/users/1")
@@ -140,7 +140,7 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.name", is("Updated Name")))
                 .andExpect(jsonPath("$.email", is("john@example.com")));
 
-        verify(userService, times(1)).update(eq(1L), any(UserDto.class));
+        verify(userService, times(1)).update(any(UserDto.class));
     }
 
     @Test
@@ -149,7 +149,7 @@ public class UserControllerTest {
         UserDto userDto = new UserDto(1, "Updated Name", "updated@example.com");
 
         // when
-        when(userService.update(eq(1L), any(UserDto.class))).thenReturn(userDto);
+        when(userService.update(any(UserDto.class))).thenReturn(userDto);
 
         // then
         mvc.perform(patch("/users/1")
@@ -160,7 +160,7 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.name", is("Updated Name")))
                 .andExpect(jsonPath("$.email", is("updated@example.com")));
 
-        verify(userService, times(1)).update(eq(1L), any(UserDto.class));
+        verify(userService, times(1)).update(any(UserDto.class));
     }
 
     @Test
@@ -169,7 +169,7 @@ public class UserControllerTest {
         UserDto updatedUserDto = new UserDto(1, "Updated Name", "updated@example.com");
 
         // when
-        when(userService.update(eq(1L), any(UserDto.class))).thenReturn(updatedUserDto);
+        when(userService.update(any(UserDto.class))).thenReturn(updatedUserDto);
 
         // then
         mvc.perform(patch("/users/1")
@@ -180,7 +180,7 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.name", is("Updated Name")))
                 .andExpect(jsonPath("$.email", is("updated@example.com")));
 
-        verify(userService, times(1)).update(eq(1L), any(UserDto.class));
+        verify(userService, times(1)).update(any(UserDto.class));
     }
 
     @Test
@@ -189,7 +189,7 @@ public class UserControllerTest {
         UserDto updatedUserDto = new UserDto(1, "Updated Name", "jane@example.com");
 
         // when
-        when(userService.update(eq(1L), any(UserDto.class)))
+        when(userService.update(any(UserDto.class)))
                 .thenThrow(new ValidationException("Email already exists"));
 
         // then
@@ -199,7 +199,7 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
 
 
-        verify(userService, times(1)).update(eq(1L), any(UserDto.class));
+        verify(userService, times(1)).update(any(UserDto.class));
     }
 
     @Test

@@ -2,6 +2,9 @@ package ru.practicum.shareit.booking.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.BookingState;
@@ -61,7 +64,10 @@ public class BookingController {
         log.info("Получение списка всех бронирований текущего пользователя: {}", userId);
 
         BookingState bookingState = BookingState.fromString(state);
-        List<BookingDto> bookings = bookingService.getBookingsForBooker(userId, bookingState, from, size);
+
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "start"));
+
+        List<BookingDto> bookings = bookingService.getBookingsForBooker(userId, bookingState, pageable);
 
         log.info("Данные получены, размер списка: {}", bookings.size());
         return bookings;
@@ -76,7 +82,10 @@ public class BookingController {
         log.info("Получение списка бронирований для всех вещей владельца: {}", userId);
 
         BookingState bookingState = BookingState.fromString(state);
-        List<BookingDto> bookings = bookingService.getBookingsForOwner(userId, bookingState, from, size);
+
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "start"));
+
+        List<BookingDto> bookings = bookingService.getBookingsForOwner(userId, bookingState, pageable);
 
         log.info("Данные получены, размер списка: {}", userId);
         return bookings;

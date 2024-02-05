@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -30,7 +32,8 @@ public class ItemController {
                                       @RequestParam(value = "size", defaultValue = "20") @Min(1) @Max(100) int size) {
 
         log.info("Получение списка вещей");
-        List<ItemInfoDto> items = itemService.getItems(userId, from, size);
+        Pageable pageable = PageRequest.of(from / size, size);
+        List<ItemInfoDto> items = itemService.getItems(userId, pageable);
         log.info("Получено {} вещей ", items.size());
         return items;
     }
@@ -78,7 +81,8 @@ public class ItemController {
                                 @RequestParam(value = "size", defaultValue = "20") @Min(1) @Max(100) int size) {
 
         log.info("Поиск вещей по тексту: {}", searchText);
-        List<ItemDto> items = itemService.search(searchText, from, size);
+        Pageable pageable = PageRequest.of(from / size, size);
+        List<ItemDto> items = itemService.search(searchText, pageable);
         log.info("Найдено {} вещей по тексту {}", items.size(), searchText);
         return items;
     }
