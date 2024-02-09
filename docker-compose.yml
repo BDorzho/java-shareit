@@ -11,11 +11,14 @@ services:
       - 'POSTGRES_USER=root'
       - 'POSTGRES_PASSWORD=root'
 
+
   server:
     build: server
     container_name: 'shareit-server'
     depends_on:
       - postgres
+
+
 
   gateway:
     build: gateway

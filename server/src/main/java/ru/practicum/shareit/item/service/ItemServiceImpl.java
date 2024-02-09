@@ -67,6 +67,7 @@ public class ItemServiceImpl implements ItemService {
                     List<Comment> itemComments = commentsMap.getOrDefault(item.getId(), Collections.emptyList());
                     return getItemDetails(item, itemComments, itemBookings, userId);
                 })
+                .sorted(Comparator.comparing(ItemInfoDto::getId))
                 .collect(Collectors.toList());
     }
 
